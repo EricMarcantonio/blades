@@ -1,0 +1,45 @@
+version: "3.1"
+
+
+networks:
+  blades:
+
+services:
+  db:
+    image: mariadb:10.3.32
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: blades
+      MYSQL_USER: backend
+      MYSQL_PASSWORD: password
+    networks:
+      - blades
+
+
+
+  frontend:
+    image: nginx
+    ports:
+      - "80:80"
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+      args:
+        GATSBY_DOMAIN: "http://backend"
+        GATSBY_PORT: 3000
+    networks:
+      - blades
+
+  backend:
+    image: golang:1.17
+    ports:
+      - "3000:3000"
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    networks:
+      - blades
