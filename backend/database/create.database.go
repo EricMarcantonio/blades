@@ -22,5 +22,9 @@ func CreateProduct(product types.Product, requestedColumns []string) (types.Prod
 	if err != nil {
 		return types.Product{}, err
 	}
+	err = rows.Close()
+	if err != nil {
+		return types.Product{}, err
+	}
 	return productsFromRows[0], nil
 }

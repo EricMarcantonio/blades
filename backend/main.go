@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
+	"github.com/joho/sqltocsv"
 	"log"
 	"net/http"
 	"os"
@@ -34,19 +35,19 @@ func main() {
 		Playground: false,
 	})
 
-	http.HandleFunc("/gql", func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set("Access-Control-Allow-Origin", "*")
-		writer.Header().Set("Access-Control-Allow-Methods", "*")
-		writer.Header().Set("Access-Control-Allow-Headers", "*")
-		h.ServeHTTP(writer, request)
+	http.HandleFunc("/gql", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		h.ServeHTTP(w, r)
 	})
-	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set("Access-Control-Allow-Origin", "*")
-		writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		keys, ok := request.URL.Query()["seed"]
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		keys, ok := r.URL.Query()["seed"]
 		if !ok {
-			_, err := fmt.Fprintf(writer, "Missing params!")
+			_, err := fmt.Fprintf(w, "Missing params!")
 			if err != nil {
 				return
 			}
@@ -55,9 +56,27 @@ func main() {
 				database.SeedFromFile()
 			}
 		}
-
 	})
-	//http.Handle("/graphql", h)
+	http.HandleFunc("/csv", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		rows, err := database.DB.Query("SELECT * FROM skates LIMIT 10000")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		w.Header().Set("Content-type", "text/csv")
+		w.Header().Set("Content-Disposition", "attachment; filename=\"report.csv\"")
+
+		err = sqltocsv.Write(w, rows)
+		if err != nil {
+			return
+		}
+	})
+
 	err = http.ListenAndServe(":3000", nil)
 	if err != nil {
 		log.Fatalln(err)

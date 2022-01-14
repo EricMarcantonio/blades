@@ -65,9 +65,6 @@ func SetEnv(key string, value string) {
 	}
 }
 
-// ExtractProductsFromRows
-// Take the result of a query and return an array of products
-// /**
 func ExtractProductsFromRows(rows *sql.Rows) ([]types.Product, error) {
 	var tempProducts []types.Product
 	var colNames []string
@@ -94,7 +91,6 @@ func ExtractProductsFromRows(rows *sql.Rows) ([]types.Product, error) {
 	if rows.Err() != nil {
 		panic(err)
 	}
-	//log.Println(tempProducts)
 	return tempProducts, nil
 }
 

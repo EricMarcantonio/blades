@@ -65,5 +65,9 @@ func UpdateAProductById(product types.Product, requestedFields []string) (types.
 	if err != nil {
 		return types.Product{}, err
 	}
+	err = rows.Close()
+	if err != nil {
+		return types.Product{}, err
+	}
 	return productsFromRows[0], nil
 }

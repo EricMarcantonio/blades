@@ -9,10 +9,8 @@ import {
     useIndexResourceState,
     Modal,
     TextContainer,
-    Button,
     Form,
     FormLayout,
-    Checkbox,
     TextField
 } from '@shopify/polaris';
 import axios from "axios";
@@ -88,7 +86,6 @@ const HelloWorld = () => {
 
     const promotedBulkActions = [{
         content: 'Edit Skate', onAction: () => {
-
             setName(rows.filter(r => r.id.toString() == selectedResources[0])[0] ? rows.filter(r => r.id.toString() == selectedResources[0])[0].name : "")
             setPrice(rows.filter(r => r.id.toString() == selectedResources[0])[0] ? rows.filter(r => r.id.toString() == selectedResources[0])[0].price : 0)
             setUnits(rows.filter(r => r.id.toString() == selectedResources[0])[0] ? rows.filter(r => r.id.toString() == selectedResources[0])[0].units : 0)
@@ -125,6 +122,10 @@ const HelloWorld = () => {
             await updateRows()
             handleChange()
         })
+    }
+
+    const getCSV = async () => {
+        window.open(`${url}:${port}/csv`, '_blank')
     }
 
     const rowMarkup = () => {
@@ -170,8 +171,11 @@ const HelloWorld = () => {
                         setPrice(0)
                         setUnits(0)
                         handleChange()
-                    }, content: "Create a Product"
-                    , destructive: false
+                    }, content: "Create a Product", destructive: false
+                }, {
+                    async onAction() {
+                        await getCSV()
+                    }, content: "Download a CSV"
                 }]}
             >
 

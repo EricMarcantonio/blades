@@ -30,5 +30,9 @@ func GetAllProducts(requestedFields []string) ([]types.Product, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = rows.Close()
+	if err != nil {
+		return []types.Product{}, err
+	}
 	return productsFromRows, nil
 }

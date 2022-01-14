@@ -18,5 +18,9 @@ func DeactivateProductById(id int) (types.Product, error) {
 	if len(productsFromRows) == 0 {
 		return types.Product{}, nil
 	}
+	err = rows.Close()
+	if err != nil {
+		return types.Product{}, err
+	}
 	return productsFromRows[0], nil
 }
