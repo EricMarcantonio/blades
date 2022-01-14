@@ -28,8 +28,8 @@ interface IProduct {
 }
 
 
-const url = process.env.GATSBY_DOMAIN
-const port = process.env.GATSBY_PORT
+const url = process.env.GATSBY_DOMAIN || "http://localhost"
+const port = process.env.GATSBY_PORT || '3000'
 
 export const post = async (body: string) => {
     return await axios.post(`${url}:${port}/gql`, {
@@ -53,12 +53,10 @@ const HelloWorld = () => {
     const handleChange = useCallback(() => {
         setActive(!active)
     }, [active]);
-    const [id, setId] = useState("0")
     const [name, setName] = useState('');
     const [price, setPrice] = useState(0);
     const [units, setUnits] = useState(0)
-
-
+    const [isCreate, setIsCreate] = useState(false)
 
 
     const updateRows = async () => {
@@ -101,11 +99,6 @@ const HelloWorld = () => {
     },];
 
 
-    const handleSubmit = useCallback((_event) => {
-        setName('');
-    }, []);
-
-
     const seedDB = async () => {
         await axios.get(`${url}:${port}/?seed=yes`)
         updateRows()
@@ -113,7 +106,7 @@ const HelloWorld = () => {
 
     const updateProduct = async () => {
         let queryString: string
-        if (allResourcesSelected){
+        if (allResourcesSelected) {
             queryString = `mutation { updateProduct(id: ${rows[0].id}, price: ${price}, units: ${units}, name: "${name}" ) { id }}`
         } else {
             queryString = `mutation { updateProduct(id: ${selectedResources[0]}, price: ${price}, units: ${units}, name: "${name}" ) { id }}`
@@ -123,6 +116,14 @@ const HelloWorld = () => {
             handleChange()
         }).catch(e => {
             console.log(e)
+        })
+    }
+
+    const createProduct = async () => {
+        let queryString = `mutation { createProduct(name: "${name}", price: ${price}, units: ${units}){ id } }`
+        await post(queryString).then(async (e) => {
+            await updateRows()
+            handleChange()
         })
     }
 
@@ -161,7 +162,19 @@ const HelloWorld = () => {
                         await seedDB()
 
                     }, destructive: true, content: "Seed the DB"
-                }}>
+                }}
+                secondaryFooterActions={[{
+                    async onAction() {
+                        setIsCreate(true)
+                        setName("")
+                        setPrice(0)
+                        setUnits(0)
+                        handleChange()
+                    }, content: "Create a Product"
+                    , destructive: false
+                }]}
+            >
+
                 <IndexTable
                     resourceName={resourceName}
                     itemCount={rows ? rows.length : 0}
@@ -182,7 +195,13 @@ const HelloWorld = () => {
                     onClose={handleChange}
                     title={`Edit ${name}`}
                     primaryAction={{
-                        content: 'Submit', onAction: async () => await updateProduct(),
+                        content: 'Submit', onAction: async () => {
+                            if (isCreate) {
+                                await createProduct()
+                            } else {
+                                await updateProduct()
+                            }
+                        },
                     }}
                     secondaryActions={[{
                         content: 'Cancel', onAction: handleChange,
