@@ -23,6 +23,9 @@ var ProductToMap = map[string]string{
 	"Units":        "units",
 }
 
+/*
+	Connect to a Maria/MysqlDB using EnvVars if provided
+*/
 func ConnectToDatabase() (error, *sql.DB) {
 	_, ok := os.LookupEnv("user")
 	if !ok {
@@ -48,8 +51,8 @@ func ConnectToDatabase() (error, *sql.DB) {
 	if !ok {
 		SetEnv("domain", "127.0.0.1")
 	}
-
 	SetEnv("domain", "127.0.0.1")
+
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?multiStatements=true", os.Getenv("user"), os.Getenv("pass"), os.Getenv("domain"), os.Getenv("port"), os.Getenv("db")))
 	if err != nil {
 		return err, nil
@@ -67,6 +70,11 @@ func SetEnv(key string, value string) {
 	}
 }
 
+/*
+	ExtractProductsFromRows
+	Takes rows returned by a query and converts it to a Skate slice
+	Dynamic setting of Skate fields, not all fields are guaranteed
+*/
 func ExtractProductsFromRows(rows *sql.Rows) ([]Skate, error) {
 	var tempProducts []Skate
 	var colNames []string
@@ -95,6 +103,10 @@ func ExtractProductsFromRows(rows *sql.Rows) ([]Skate, error) {
 	return tempProducts, nil
 }
 
+/*
+	ProductCol
+	return the address of a field in a skate
+*/
 func ProductCol(ColName string, product *Skate) interface{} {
 	switch ColName {
 	case "id":
@@ -112,10 +124,15 @@ func ProductCol(ColName string, product *Skate) interface{} {
 	case "units":
 		return &product.Units
 	default:
-		panic("Not impletmented")
+		panic("Not implemented")
 	}
 }
 
+/*
+	BuildParamUpdateColumn
+	Created parameterized queries to combat SQL injections
+	Creates a string with parameters built in
+*/
 func BuildParamUpdateColumn(changingColumns []string) string {
 	var tempString strings.Builder
 	var columnName []string
@@ -138,6 +155,11 @@ func BuildParamUpdateColumn(changingColumns []string) string {
 	return tempString.String()
 }
 
+/*
+	CreateProductInDB
+	Creates a Skate in the db, returning the fields requested by the user
+	Returns an error if any queries go wrong
+*/
 func CreateProductInDB(product Skate, requestedColumns []string) (Skate, error) {
 	_, err := DB.Exec("INSERT INTO skates (name, price, modified_date, added_date, is_active, units) VALUES (?, ?, NOW(), NOW(),'yes', ?)", product.Name, product.Price, product.Units)
 	if err != nil {
@@ -155,8 +177,17 @@ func CreateProductInDB(product Skate, requestedColumns []string) (Skate, error) 
 	if err != nil {
 		return Skate{}, err
 	}
+	if len(productsFromRows) == 0 {
+		return Skate{}, nil
+	}
 	return productsFromRows[0], nil
 }
+
+/*
+	GetAProductByIdFromDB
+	Return a skate from the database, using the id, with only the fields requested
+	returns an error if an error has been thrown
+*/
 func GetAProductByIdFromDB(id int, requestedColumns []string) (Skate, error) {
 	rows, err := DB.Query(fmt.Sprintf("SELECT %s FROM skates WHERE id=?", strings.Join(requestedColumns, ",")), id)
 	if err != nil {
@@ -172,6 +203,10 @@ func GetAProductByIdFromDB(id int, requestedColumns []string) (Skate, error) {
 	return productsFromRows[0], nil
 }
 
+/*
+	GetAllProductsFromDB
+	return a slice of Skate that has the requested fields filled out
+*/
 func GetAllProductsFromDB(requestedFields []string) ([]Skate, error) {
 	rows, err := DB.Query(fmt.Sprintf("SELECT %s FROM skates WHERE is_active = 'yes' LIMIT 100", strings.Join(requestedFields, ",")))
 	if err != nil {
@@ -188,13 +223,18 @@ func GetAllProductsFromDB(requestedFields []string) ([]Skate, error) {
 	return productsFromRows, nil
 }
 
+/*
+	UpdateAProductById
+	Updates a product with dynamic fields
+	Checks `product` for ZeroValue fields, and creates a query that only updates those fields
+	Returns the requestedFields of the updated product from the database (after commit)
+*/
 func UpdateAProductById(product Skate, requestedFields []string) (Skate, error) {
-	// Check if an ID was given
+
 	if product.ID == 0 {
 		return Skate{}, errors.New("no ID passed to UpdateAProductById")
 	}
 
-	//Build the query string with this
 	var fieldsToUpdateWithId, _ = StatFields(product)
 	fieldsToUpdateWithId = fieldsToUpdateWithId[1:]
 
@@ -219,7 +259,6 @@ func UpdateAProductById(product Skate, requestedFields []string) (Skate, error) 
 	queryString.WriteString(", modified_date = NOW()")
 	queryString.WriteString(" WHERE id = ? ")
 	var err error
-	//var tempProduct types.Skate
 	cols := make([]interface{}, len(cleanedNames)+1)
 	for i := 0; i < len(cleanedNames); i++ {
 		if cleanedNames[i] == "is_active" {
@@ -250,9 +289,16 @@ func UpdateAProductById(product Skate, requestedFields []string) (Skate, error) 
 	if err != nil {
 		return Skate{}, err
 	}
+	if len(productsFromRows) == 0 {
+		return Skate{}, nil
+	}
 	return productsFromRows[0], nil
 }
 
+/*
+	DeactivateProductById
+	Deactivates a skate in the db
+*/
 func DeactivateProductById(id int) (Skate, error) {
 	_, err := DB.Exec("UPDATE skates set is_active = 'no' where id = ?", id)
 	if err != nil {

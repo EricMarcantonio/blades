@@ -46,6 +46,8 @@ func GetAllProducts(p graphql.ResolveParams) (interface{}, error) {
 	CreateProduct
 	Parses a request and sends it to CreateProductInDB
 	Only sends the requested fields to the db for projection, using GetSelectedFields
+	returns an error if CreateProductInDB returns an error
+	returns a Skate, read and parsed from the database (confirmation of commit)
 */
 func CreateProduct(p graphql.ResolveParams) (interface{}, error) {
 	if p.Args["name"].(string) == "" {
@@ -65,17 +67,21 @@ func CreateProduct(p graphql.ResolveParams) (interface{}, error) {
 	return product, nil
 }
 
+/*
+	UpdateAProduct
+	Parses a request to update a Skate in the DB
+	Only sends the requested fields to the db for projection, using GetSelectedFields
+*/
 func UpdateAProduct(p graphql.ResolveParams) (interface{}, error) {
 	i := p.Args["id"].(int)
 	if i == 0 {
 		return Skate{}, errors.New("ID not passed to UpdateAProduct")
 	}
 	product := Skate{
-		ID:       p.Args["id"].(int),
-		Name:     p.Args["name"].(string),
-		Price:    p.Args["price"].(float64),
-		IsActive: p.Args["is_active"].(string),
-		Units:    p.Args["units"].(int),
+		ID:    p.Args["id"].(int),
+		Name:  p.Args["name"].(string),
+		Price: p.Args["price"].(float64),
+		Units: p.Args["units"].(int),
 	}
 	aProductById, err := UpdateAProductById(product, GetSelectedFields([]string{"updateProduct"}, p))
 	if err != nil {
@@ -84,6 +90,29 @@ func UpdateAProduct(p graphql.ResolveParams) (interface{}, error) {
 	return aProductById, nil
 }
 
+/*
+	DeactivateProduct
+	Deactivates a product, essentially deleting it from the user view
+	returns an error if no ID is passed
+*/
+func DeactivateProduct(p graphql.ResolveParams) (interface{}, error) {
+	i := p.Args["id"].(int)
+	if i == 0 {
+		return Skate{}, errors.New("ID not passed to Deactivate")
+	}
+
+	aProductById, err := DeactivateProductById(i)
+	if err != nil {
+		return nil, err
+	}
+	return aProductById, nil
+}
+
+/*
+	GetSelectedFields
+	Parses a graphql.ResolveParams to return the fields requested by the user
+	Allows for lean queries; only need to project fields requested by the user
+*/
 func GetSelectedFields(selectionPath []string, resolveParams graphql.ResolveParams) []string {
 	fields := resolveParams.Info.FieldASTs
 	for _, propName := range selectionPath {
@@ -108,17 +137,4 @@ func GetSelectedFields(selectionPath []string, resolveParams graphql.ResolvePara
 		collect = append(collect, field.Name.Value)
 	}
 	return collect
-}
-
-func DeactivateProduct(p graphql.ResolveParams) (interface{}, error) {
-	i := p.Args["id"].(int)
-	if i == 0 {
-		return Skate{}, errors.New("ID not passed to Deactivate")
-	}
-
-	aProductById, err := DeactivateProductById(i)
-	if err != nil {
-		return nil, err
-	}
-	return aProductById, nil
 }

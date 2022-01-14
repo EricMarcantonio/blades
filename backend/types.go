@@ -5,9 +5,6 @@ import (
 	"reflect"
 )
 
-/**
-A Struct
-*/
 type Skate struct {
 	ID           int     `json:"id"`
 	Name         string  `json:"name"`
@@ -128,10 +125,11 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
-// StatFields
-//
-//	Returns the NonNilFields, nilFields
-///**
+/*
+	StatFields
+	returns which fields have a non 0 value, and which do
+	returns nonNil, nil
+*/
 func StatFields(object interface{}) ([]string, []string) {
 	val := reflect.ValueOf(object)
 	var nilFields []string
