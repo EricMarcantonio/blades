@@ -1,7 +1,6 @@
-package database
+package main
 
 import (
-	"backend/types"
 	"database/sql"
 	"fmt"
 	"reflect"
@@ -63,26 +62,26 @@ func TestBuildParamUpdateColumn(t *testing.T) {
 func TestCreateProduct(t *testing.T) {
 	connectToDatabase()
 	type args struct {
-		product          types.Product
+		product          Skate
 		requestedColumns []string
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    types.Product
+		want    Skate
 		wantErr bool
 	}{
 		{
 			name: "Create a product",
 			args: args{
-				product: types.Product{
+				product: Skate{
 					Name:  "Skates",
 					Price: 10.01,
 					Units: 1,
 				},
 				requestedColumns: []string{"id", "name"},
 			},
-			want: types.Product{
+			want: Skate{
 				ID:   5,
 				Name: "Skates",
 			},
@@ -91,13 +90,13 @@ func TestCreateProduct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := CreateProduct(tt.args.product, tt.args.requestedColumns)
+			got, err := CreateProductInDB(tt.args.product, tt.args.requestedColumns)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateProduct() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("CreateProductInDB() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CreateProduct() got = %v, want %v", got, tt.want)
+				t.Errorf("CreateProductInDB() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -108,7 +107,7 @@ func TestExtractProductsFromRows(t *testing.T) {
 		rows *sql.Rows
 	}
 	connectToDatabase()
-	rows, err := DB.Query("SELECT * from skates order by id asc limit 1")
+	rows, err := DB.Query("SELECT * from skates order by id limit 1")
 	col, _ := rows.Columns()
 	fmt.Println(col)
 	if err != nil {
@@ -117,13 +116,13 @@ func TestExtractProductsFromRows(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []types.Product
+		want    []Skate
 		wantErr bool
 	}{
 		{
 			name: "Get a product struct from a row in the db",
 			args: args{rows: rows},
-			want: []types.Product{
+			want: []Skate{
 				{
 					ID:       1,
 					Name:     "Bauer Supreme Ultrasonic Skates",
@@ -160,7 +159,7 @@ func TestGetAProductById(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    types.Product
+		want    Skate
 		wantErr bool
 	}{
 		{
@@ -170,7 +169,7 @@ func TestGetAProductById(t *testing.T) {
 				requestedColumns: []string{"id", "name", "price", "is_active", "units"},
 			},
 
-			want: types.Product{
+			want: Skate{
 				ID:       1,
 				Name:     "Bauer Supreme Ultrasonic Skates",
 				Price:    599.99,
@@ -185,7 +184,7 @@ func TestGetAProductById(t *testing.T) {
 				requestedColumns: []string{"id", "name", "price", "is_active", "units"},
 			},
 
-			want: types.Product{
+			want: Skate{
 				ID:           0,
 				Name:         "",
 				Price:        0,
@@ -198,15 +197,15 @@ func TestGetAProductById(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetAProductById(tt.args.id, tt.args.requestedColumns)
+			got, err := GetAProductByIdFromDB(tt.args.id, tt.args.requestedColumns)
 			got.ModifiedDate = ""
 			got.AddedDate = ""
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetAProductById() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetAProductByIdFromDB() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetAProductById() got = %v, want %v", got, tt.want)
+				t.Errorf("GetAProductByIdFromDB() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -220,13 +219,13 @@ func TestGetAllProducts(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []types.Product
+		want    []Skate
 		wantErr bool
 	}{
 		{
 			name: "Whole Database",
 			args: args{requestedFields: []string{"id"}},
-			want: []types.Product{
+			want: []Skate{
 				{
 					ID: 1,
 				},
@@ -247,13 +246,13 @@ func TestGetAllProducts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetAllProducts(tt.args.requestedFields)
+			got, err := GetAllProductsFromDB(tt.args.requestedFields)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetAllProducts() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetAllProductsFromDB() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetAllProducts() got = %v, want %v", got, tt.want)
+				t.Errorf("GetAllProductsFromDB() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -262,22 +261,22 @@ func TestGetAllProducts(t *testing.T) {
 func TestUpdateAProductById(t *testing.T) {
 	connectToDatabase()
 	type args struct {
-		product         types.Product
+		product         Skate
 		requestedFields []string
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    types.Product
+		want    Skate
 		wantErr bool
 	}{
 		{
 			name: "Change the number of units for an ID",
 			args: args{
-				product:         types.Product{ID: 1, Units: 1200},
+				product:         Skate{ID: 1, Units: 1200},
 				requestedFields: []string{"id", "units"},
 			},
-			want: types.Product{
+			want: Skate{
 				ID:    1,
 				Units: 1200,
 			},
@@ -285,10 +284,10 @@ func TestUpdateAProductById(t *testing.T) {
 		{
 			name: "Change the number of units for an ID",
 			args: args{
-				product:         types.Product{ID: 1, Units: 12},
+				product:         Skate{ID: 1, Units: 12},
 				requestedFields: []string{"id", "units"},
 			},
-			want: types.Product{
+			want: Skate{
 				ID:    1,
 				Units: 12,
 			},
@@ -316,13 +315,13 @@ func TestDeactivateProductById(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    types.Product
+		want    Skate
 		wantErr bool
 	}{
 		{
 			name:    "Deactivate number 5",
 			args:    args{id: 5},
-			want:    types.Product{ID: 5, IsActive: "no"},
+			want:    Skate{ID: 5, IsActive: "no"},
 			wantErr: false,
 		},
 	}

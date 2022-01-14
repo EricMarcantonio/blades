@@ -1,8 +1,6 @@
 package main
 
 import (
-	"backend/database"
-	"backend/resolvers"
 	"database/sql"
 	"fmt"
 	"github.com/graphql-go/graphql"
@@ -15,7 +13,7 @@ import (
 
 func main() {
 	var err error
-	err, database.DB = database.ConnectToDatabase()
+	err, DB = ConnectToDatabase()
 
 	if err != nil {
 		os.Exit(1)
@@ -23,8 +21,8 @@ func main() {
 
 	var schema, _ = graphql.NewSchema(
 		graphql.SchemaConfig{
-			Query:    resolvers.QueryType,
-			Mutation: resolvers.MutationType,
+			Query:    QueryType,
+			Mutation: MutationType,
 		},
 	)
 
@@ -53,7 +51,7 @@ func main() {
 			}
 		} else {
 			if keys[0] == "yes" {
-				database.SeedFromFile()
+				SeedFromFile()
 			}
 		}
 	})
@@ -61,12 +59,17 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
-		rows, err := database.DB.Query("SELECT * FROM skates LIMIT 10000")
+		rows, err := DB.Query("SELECT * FROM skates LIMIT 10000")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer rows.Close()
+		defer func(rows *sql.Rows) {
+			err := rows.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}(rows)
 
 		w.Header().Set("Content-type", "text/csv")
 		w.Header().Set("Content-Disposition", "attachment; filename=\"report.csv\"")
@@ -87,5 +90,5 @@ func main() {
 		if err != nil {
 			log.Fatalln("couldn't close connection the DB")
 		}
-	}(database.DB)
+	}(DB)
 }

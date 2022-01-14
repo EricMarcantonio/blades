@@ -1,47 +1,66 @@
-package resolvers
+package main
 
 import (
-	"backend/database"
-	"backend/types"
 	"errors"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
 )
 
+/*
+	GetProductById
+	Handles a request for a single product
+	Only sends the requested fields to the db for projection, using GetSelectedFields
+	Cleans and parses the request and sends it to a GetAProductByIdFromDB handler
+	returns an error if no id is passed (it's enforced by gql but just in case)
+	returns a single product, even if the id was not found
+*/
 func GetProductById(p graphql.ResolveParams) (interface{}, error) {
 	i := p.Args["id"].(int)
 	if i == 0 {
 		return nil, errors.New("no id passed, or wrong type")
 	}
-	product, err := database.GetAProductById(i, GetSelectedFields([]string{"product"}, p))
+	product, err := GetAProductByIdFromDB(i, GetSelectedFields([]string{"product"}, p))
 	if err != nil {
 		return nil, err
 	}
 	return product, nil
 }
 
+/*
+	GetAllProducts
+	Handles a request for all products
+	Only sends the requested fields to the db for projection, using GetSelectedFields
+	Cleans and parses the request and sends it to a GetAllProductsFromDB handler
+	returns nil if nothing is returned by the DB
+	returns an array of products that are converted to GProduct slice
+*/
 func GetAllProducts(p graphql.ResolveParams) (interface{}, error) {
-	products, err := database.GetAllProducts(GetSelectedFields([]string{"products"}, p))
+	products, err := GetAllProductsFromDB(GetSelectedFields([]string{"products"}, p))
 	if err != nil {
 		return nil, err
 	}
 	return products, nil
 }
 
+/*
+	CreateProduct
+	Parses a request and sends it to CreateProductInDB
+	Only sends the requested fields to the db for projection, using GetSelectedFields
+*/
 func CreateProduct(p graphql.ResolveParams) (interface{}, error) {
 	if p.Args["name"].(string) == "" {
-		return types.Product{}, errors.New("no name passed")
+		return Skate{}, errors.New("no name passed")
 	}
 	if p.Args["price"].(float64) == 0.0 {
-		return types.Product{}, errors.New("no price passed")
+		return Skate{}, errors.New("no price passed")
 	}
-	product := types.Product{
+	product := Skate{
 		Name:  p.Args["name"].(string),
 		Price: p.Args["price"].(float64),
 	}
-	product, err := database.CreateProduct(product, GetSelectedFields([]string{"createProduct"}, p))
+	product, err := CreateProductInDB(product, GetSelectedFields([]string{"createProduct"}, p))
 	if err != nil {
-		return types.Product{}, err
+		return Skate{}, err
 	}
 	return product, nil
 }
@@ -49,17 +68,16 @@ func CreateProduct(p graphql.ResolveParams) (interface{}, error) {
 func UpdateAProduct(p graphql.ResolveParams) (interface{}, error) {
 	i := p.Args["id"].(int)
 	if i == 0 {
-		return types.Product{}, errors.New("ID not passed to UpdateAProduct")
+		return Skate{}, errors.New("ID not passed to UpdateAProduct")
 	}
-	product := types.Product{
+	product := Skate{
 		ID:       p.Args["id"].(int),
 		Name:     p.Args["name"].(string),
 		Price:    p.Args["price"].(float64),
 		IsActive: p.Args["is_active"].(string),
 		Units:    p.Args["units"].(int),
 	}
-
-	aProductById, err := database.UpdateAProductById(product, GetSelectedFields([]string{"updateProduct"}, p))
+	aProductById, err := UpdateAProductById(product, GetSelectedFields([]string{"updateProduct"}, p))
 	if err != nil {
 		return nil, err
 	}
@@ -95,10 +113,10 @@ func GetSelectedFields(selectionPath []string, resolveParams graphql.ResolvePara
 func DeactivateProduct(p graphql.ResolveParams) (interface{}, error) {
 	i := p.Args["id"].(int)
 	if i == 0 {
-		return types.Product{}, errors.New("ID not passed to Deactivate")
+		return Skate{}, errors.New("ID not passed to Deactivate")
 	}
 
-	aProductById, err := database.DeactivateProductById(i)
+	aProductById, err := DeactivateProductById(i)
 	if err != nil {
 		return nil, err
 	}
