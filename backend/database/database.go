@@ -22,12 +22,12 @@ var ProductToMap = map[string]string{
 }
 
 func ConnectToDatabase() (error, *sql.DB) {
-	SetEnv("user", "backend")
-	SetEnv("db", "blades")
-	SetEnv("pass", "password")
-	SetEnv("root_pass", "example")
-	SetEnv("port", "3306")
-	SetEnv("domain", "127.0.0.1")
+	//SetEnv("user", "backend")
+	//SetEnv("db", "blades")
+	//SetEnv("pass", "password")
+	//SetEnv("root_pass", "example")
+	//SetEnv("port", "3306")
+	//SetEnv("domain", "127.0.0.1")
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?multiStatements=true", os.Getenv("user"), os.Getenv("pass"), os.Getenv("domain"), os.Getenv("port"), os.Getenv("db")))
 	if err != nil {
 		return err, nil
