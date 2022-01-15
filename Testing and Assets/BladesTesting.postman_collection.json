@@ -1,0 +1,204 @@
+{
+	"info": {
+		"_postman_id": "6d5c9404-2558-45cd-bb43-5ba9b873278d",
+		"name": "BladesTesting",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GetAllProducts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"Contains products\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.products).is.not.null",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query {\n    products{\n        id\n    }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetProductById",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Contains a product fields\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.product.name).to.eql(\"Bauer Supreme Ultrasonic Skates\");",
+							"    pm.expect(jsonData.data.product.price).to.eql(599.99);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query {\n    product(id:1){\n        name\n        price\n    }\n}",
+						"variables": "{\n    \"id\": 1\n}"
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateAProduct",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Create a Product\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.createProduct.added_date).not.null",
+							"    pm.expect(jsonData.data.createProduct.id).not.null",
+							"    pm.expect(jsonData.data.createProduct.is_active).eq(\"yes\")",
+							"    pm.expect(jsonData.data.createProduct.modifed_date).not.null",
+							"    pm.expect(jsonData.data.createProduct.name).eq(\"A New Skate\")",
+							"    pm.expect(jsonData.data.createProduct.units).eq(0)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation {\n    createProduct(name: \"A New Skate\", price: 49.99, units: 0){\n        id\n        units\n        name\n        price\n        modified_date\n        added_date\n        is_active\n        \n    }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateAProduct",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Update a Product\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.updateProduct.added_date).not.null",
+							"    pm.expect(jsonData.data.updateProduct.id).is(1)",
+							"    pm.expect(jsonData.data.updateProduct.is_active).eq(\"yes\")",
+							"    pm.expect(jsonData.data.updateProduct.modifed_date).not.null",
+							"    pm.expect(jsonData.data.updateProduct.name).eq(\"A New Skate Updated\")",
+							"    pm.expect(jsonData.data.updateProduct.units).eq(12)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation {\n    updateProduct(id: 1, name: \"A New Skate Updated\", price: 40.99, units: 12){\n        id\n        units\n        name\n        price\n        modified_date\n        added_date\n        is_active\n        \n    }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteAProduct",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Update a Product\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.deactivateProduct.id).is(5)",
+							"    pm.expect(jsonData.data.deactivateProduct.is_active).eq(\"no\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation {\n    deactivateProduct(id: 5){\n        id\n        is_active\n    }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://blades.ericmarcantonio.com:3000/gql"
+		}
+	]
+}
