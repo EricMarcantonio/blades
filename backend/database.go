@@ -27,47 +27,38 @@ var ProductToMap = map[string]string{
 	Connect to a Maria/MysqlDB using EnvVars if provided
 */
 func ConnectToDatabase() (error, *sql.DB) {
-	_, ok := os.LookupEnv("user")
-	if !ok {
-		SetEnv("user", "backend")
-	}
-	_, ok = os.LookupEnv("db")
-	if !ok {
-		SetEnv("db", "blades")
-	}
-	_, ok = os.LookupEnv("pass")
-	if !ok {
-		SetEnv("pass", "password")
-	}
-	_, ok = os.LookupEnv("root_pass")
-	if !ok {
-		SetEnv("root_pass", "example")
-	}
-	_, ok = os.LookupEnv("port")
-	if !ok {
-		SetEnv("port", "3306")
-	}
-	_, ok = os.LookupEnv("domain")
-	if !ok {
-		SetEnv("domain", "127.0.0.1")
-	}
-	SetEnv("domain", "127.0.0.1")
-
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?multiStatements=true", os.Getenv("user"), os.Getenv("pass"), os.Getenv("domain"), os.Getenv("port"), os.Getenv("db")))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?multiStatements=true", localDev("user"), localDev("pass"), localDev("domain"), localDev("port"), localDev("db")))
 	if err != nil {
 		return err, nil
 	}
 	return nil, db
 }
 
-func SetEnv(key string, value string) {
-	_, exists := os.LookupEnv(key)
+func env(key string) string {
+	v, exists := os.LookupEnv(key)
 	if !exists {
-		err := os.Setenv(key, value)
-		if err != nil {
-			os.Exit(1)
+		return ""
+	} else {
+		return v
+	}
+}
+
+func localDev(param string) string {
+	if env(param) == "" {
+		switch param {
+		case "user":
+			return "backend"
+		case "db":
+			return "blades"
+		case "pass":
+			return "password"
+		case "port":
+			return "3306"
+		case "domain":
+			return "127.0.0.1"
 		}
 	}
+	return env(param)
 }
 
 /*
@@ -161,7 +152,7 @@ func BuildParamUpdateColumn(changingColumns []string) string {
 	Returns an error if any queries go wrong
 */
 func CreateProductInDB(product Skate, requestedColumns []string) (Skate, error) {
-	_, err := DB.Exec("INSERT INTO skates (name, price, modified_date, added_date, is_active, units) VALUES (?, ?, NOW(), NOW(),'yes', ?)", product.Name, product.Price, product.Units)
+	_, err := DB.Exec("INSERT INTO skates (name, price, modified_date, added_date, is_active, units) VALUES (?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(),'yes', ?)", product.Name, product.Price, product.Units)
 	if err != nil {
 		return Skate{}, err
 	}
@@ -256,7 +247,7 @@ func UpdateAProductById(product Skate, requestedFields []string) (Skate, error) 
 	}
 	queryString.WriteString(" UPDATE skates set ")
 	queryString.WriteString(BuildParamUpdateColumn(cleanedNames))
-	queryString.WriteString(", modified_date = NOW()")
+	queryString.WriteString(", modified_date = UTC_TIMESTAMP()")
 	queryString.WriteString(" WHERE id = ? ")
 	var err error
 	cols := make([]interface{}, len(cleanedNames)+1)

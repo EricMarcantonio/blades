@@ -142,8 +142,8 @@ const HelloWorld = () => {
                 <IndexTable.Cell>{name}</IndexTable.Cell>
                 <IndexTable.Cell>{price}</IndexTable.Cell>
                 <IndexTable.Cell>{units}</IndexTable.Cell>
-                <IndexTable.Cell>{moment(modified_date).local().format("MMM Do YY, h:mm:ss a")}</IndexTable.Cell>
-                <IndexTable.Cell>{moment(added_date).local().format("MMM Do YY, h:mm:ss a")}</IndexTable.Cell>
+                <IndexTable.Cell>{moment.utc(modified_date).local().format("MMM Do YY, h:mm:ss a")}</IndexTable.Cell>
+                <IndexTable.Cell>{moment.utc(added_date).local().format("MMM Do YY, h:mm:ss a")}</IndexTable.Cell>
 
             </IndexTable.Row>),)
         } else {
