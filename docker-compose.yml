@@ -31,6 +31,8 @@ services:
     hostname: backend
     ports:
       - "3000:3000"
+    depends_on:
+      - db
     build:
       context: backend
       dockerfile: Dockerfile
