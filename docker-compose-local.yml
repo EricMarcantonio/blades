@@ -3,6 +3,8 @@ services:
   db:
     image: mariadb:10.3.32
     command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
     hostname: db
     restart: always
     environment:
@@ -21,7 +23,7 @@ services:
       context: frontend
       dockerfile: Dockerfile
       args:
-        GATSBY_DOMAIN: "http://blades.ericmarcantonio.com"
+        GATSBY_DOMAIN: "http://localhost"
         GATSBY_PORT: 3000
 
   backend:
@@ -37,4 +39,4 @@ services:
         db: blades
         pass: password
         port: 3306
-        domain: db
+        domain: localhost
