@@ -13,4 +13,4 @@ To build and run from source:
 1. `git clone https://github.com/EricMarcantonio/blades.git`
 2. `cd blades/`
 3. `docker-compose up --build -d`
-4. It's running on port 80 (if you need to change this, edit docker-compose)
+4. It's running on port 80 (if you need to change this, edit docker-compose-local.yml)

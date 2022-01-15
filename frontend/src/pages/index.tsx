@@ -18,9 +18,9 @@ import moment from "moment";
 
 interface IProduct {
     name: string
-    price: number
+    price: string
     id: number
-    units: number
+    units: string
     modified_date: string
     added_date: string
 }
@@ -39,7 +39,7 @@ export const post = async (body: string) => {
 
 
 const HelloWorld = () => {
-    let temp: IProduct = {name: "", price: 0, units: 0, id: 0, modified_date: "", added_date: ""}
+    let temp: IProduct = {name: "", price: "", units: "", id: 0, modified_date: "", added_date: ""}
     const [rows, setRows] = useState<IProduct[]>(Array(temp))
 
     // @ts-ignore
@@ -52,8 +52,8 @@ const HelloWorld = () => {
         setActive(!active)
     }, [active]);
     const [name, setName] = useState('');
-    const [price, setPrice] = useState(0);
-    const [units, setUnits] = useState(0)
+    const [price, setPrice] = useState("");
+    const [units, setUnits] = useState("")
     const [isCreate, setIsCreate] = useState(false)
 
 
@@ -72,13 +72,13 @@ const HelloWorld = () => {
         if (allResourcesSelected) {
             await Promise.all(rows.map(v => {
                 return post(`mutation { deactivateProduct(id: ${v.id}){ id }}`)
-            })).then(async r => {
+            })).then(async () => {
                 await updateRows()
             })
         }
         await Promise.all(selectedResources.map(v => {
             return post(`mutation { deactivateProduct(id: ${v}){ id }}`)
-        })).then(async r => {
+        })).then(async () => {
             await updateRows();
         })
     }
@@ -87,8 +87,8 @@ const HelloWorld = () => {
     const promotedBulkActions = [{
         content: 'Edit Skate', onAction: () => {
             setName(rows.filter(r => r.id.toString() == selectedResources[0])[0] ? rows.filter(r => r.id.toString() == selectedResources[0])[0].name : "")
-            setPrice(rows.filter(r => r.id.toString() == selectedResources[0])[0] ? rows.filter(r => r.id.toString() == selectedResources[0])[0].price : 0)
-            setUnits(rows.filter(r => r.id.toString() == selectedResources[0])[0] ? rows.filter(r => r.id.toString() == selectedResources[0])[0].units : 0)
+            setPrice(rows.filter(r => r.id.toString() == selectedResources[0])[0] ? rows.filter(r => r.id.toString() == selectedResources[0])[0].price.toString() : "")
+            setUnits(rows.filter(r => r.id.toString() == selectedResources[0])[0] ? rows.filter(r => r.id.toString() == selectedResources[0])[0].units.toString() : "")
             handleChange()
         },
     }, {
@@ -98,7 +98,7 @@ const HelloWorld = () => {
 
     const seedDB = async () => {
         await axios.get(`${url}:${port}/?seed=yes`)
-        updateRows()
+        await updateRows()
     }
 
     const updateProduct = async () => {
@@ -118,7 +118,7 @@ const HelloWorld = () => {
 
     const createProduct = async () => {
         let queryString = `mutation { createProduct(name: "${name}", price: ${price}, units: ${units}){ id } }`
-        await post(queryString).then(async (e) => {
+        await post(queryString).then(async () => {
             await updateRows()
             handleChange()
         })
@@ -168,8 +168,8 @@ const HelloWorld = () => {
                     async onAction() {
                         setIsCreate(true)
                         setName("")
-                        setPrice(0)
-                        setUnits(0)
+                        setPrice("")
+                        setUnits("")
                         handleChange()
                     }, content: "Create a Product", destructive: false
                 }, {
@@ -185,7 +185,6 @@ const HelloWorld = () => {
                     selectedItemsCount={allResourcesSelected ? 'All' : selectedResources.length}
                     onSelectionChange={handleSelectionChange}
                     promotedBulkActions={promotedBulkActions}
-                    bulkActions={promotedBulkActions}
                     headings={[{title: 'SKU'}, {title: 'Name'}, {title: 'Price'}, {title: 'Units'}, {title: 'Last Modified'}, {title: 'Added On'}]}
                 >
                     {rowMarkup()}
@@ -202,9 +201,11 @@ const HelloWorld = () => {
                         content: 'Submit', onAction: async () => {
                             if (isCreate) {
                                 await createProduct()
+                                setIsCreate(false)
                             } else {
                                 await updateProduct()
                             }
+                            console.log("Modal called")
                         },
                     }}
                     secondaryActions={[{
@@ -214,7 +215,7 @@ const HelloWorld = () => {
                 >
                     <Modal.Section>
                         <TextContainer>
-                            <Form onSubmit={updateProduct}>
+                            <Form onSubmit={() => null}>
                                 <FormLayout>
                                     <TextField
                                         value={name}

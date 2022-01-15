@@ -59,6 +59,7 @@ func CreateProduct(p graphql.ResolveParams) (interface{}, error) {
 	product := Skate{
 		Name:  p.Args["name"].(string),
 		Price: p.Args["price"].(float64),
+		Units: p.Args["units"].(int),
 	}
 	product, err := CreateProductInDB(product, GetSelectedFields([]string{"createProduct"}, p))
 	if err != nil {
