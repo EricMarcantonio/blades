@@ -22,7 +22,7 @@ Blades is a simple POC inventory system, with CRUD and the ability to export as 
 It has a simple React frontend, designed with Polaris from Shopify, and a dockerized backend running GraphQL with connections to MariaDB.
 
 Repo Features
-- Lean and concurrent queries, only what you request in graphql is queried from a table
+- Lean and concurrent queries, only what you request in GraphQL is queried from a table
 - All complicated code is commented for easy reading
 - A collection of postman requests are included for Web testing
 - `go test` friendly testing is available for database requests
@@ -32,3 +32,4 @@ Repo Features
 - Add TLS and authentication
 - Set up kubernetes for scaling and managing a container fleet
 - Add logging servers that can digest logs (ELK Software)
+
