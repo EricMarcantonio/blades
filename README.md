@@ -33,3 +33,8 @@ Repo Features
 - Set up kubernetes for scaling and managing a container fleet
 - Add logging servers that can digest logs (ELK Software)
 
+![Create](https://raw.githubusercontent.com/EricMarcantonio/blades/master/screenshots/Create%20CSV.png)
+
+![Update](https://raw.githubusercontent.com/EricMarcantonio/blades/master/screenshots/Update.png)
+
+![Delete](https://raw.githubusercontent.com/EricMarcantonio/blades/master/screenshots/Delete.png)
