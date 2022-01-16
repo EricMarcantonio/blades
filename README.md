@@ -26,6 +26,7 @@ Repo Features
 - All complicated code is commented for easy reading
 - A collection of postman requests are included for Web testing
 - `go test` friendly testing is available for database requests
+- Deactivates instead of deleting records; keeping record of all products
 
 
 ## Future changes

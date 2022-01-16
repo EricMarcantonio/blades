@@ -1,1 +1,1 @@
-k6 run --vus 100 --duration 1s load.js --summary-export load_100_1s.json
+k6 run --vus 100 --duration 1s ./load.js --summary-export load_100_1s.json

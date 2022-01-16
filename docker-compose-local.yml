@@ -39,4 +39,4 @@ services:
         db: blades
         pass: password
         port: 3306
-        domain: localhost
+        domain: db
